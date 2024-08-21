@@ -1,3 +1,60 @@
+use std::thread;
+use std::time::Duration;
+use std::sync::mpsc;
+
 fn main() {
-    println!("Hello, world!");
+    // let v = vec![1, 2, 3];
+    let (tx, rx) = mpsc::channel();
+
+
+    // let handle = thread::spawn(move || {
+    //     for i in 1..10 {
+    //         println!("hi number {i} from the spawned thread!");
+    //         thread::sleep(Duration::from_millis(1))
+    //     }
+    //
+    //     println!("Here's the vector: {v:?}")
+    // });
+    //
+    // for i in 1..5 {
+    //     println!("hi number {i} from the main thread!");
+    //     thread::sleep(Duration::from_millis(1))
+    // }
+    //
+    // handle.join().unwrap()
+
+    let another_tx = tx.clone();
+
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("hi"),
+            String::from("from"),
+            String::from("the"),
+            String::from("spawned"),
+            String::from("thread!"),
+        ];
+
+        for val in vals {
+            tx.send(val).unwrap();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("more"),
+            String::from("messages"),
+            String::from("for"),
+            String::from("you"),
+        ];
+
+        for val in vals {
+            another_tx.send(val).unwrap();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+
+    for received in rx {
+        println!("Received: {received}");
+    }
 }
